@@ -63,13 +63,10 @@ def numberplate_to_text(img):
     #text = result[0][-2]
     
     return new_text
-
-print('Adja meg a kép elérési útját! (formátum: tesztkepek/ .. .jpg)')
-inputpath = 'tesztkepek/audi.jpg'
-#'pl: tesztkepek/SGU-827.jpg'
+   
+inputpath = input('Adja meg a kép elérési útját! (formátum: tesztkepek/ .. .jpg)\n')
 img = cv2.imread(inputpath) #kép beolvasása fájlba
 number_plate_text = numberplate_to_text(img)
 print("A rendszam:",number_plate_text)
-
 cv2.waitKey()
 cv2.destroyAllWindows()
