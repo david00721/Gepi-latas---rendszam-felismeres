@@ -44,21 +44,19 @@ def four_point_transform(image, pts):
 #----------rendszám kinyerő függvény-----------
 
 def numberplate_to_text(img):    
-    #cv2.imshow("Rendszamtabla koruli kontur", img)
-    #cv2.waitKey(0)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    #cv2.imshow("Rendszamtabla koruli kontur", gray)
+    #cv2.imshow("Szurkearnyalatos kep", gray)
     #cv2.waitKey(0)
     bfilter = cv2.bilateralFilter(gray, 11, 17, 17)
-    edged = cv2.Canny(bfilter, 100, 300) #Canny algoritmus 30,200, 10, 400
-    #cv2.imshow("Rendszamtabla koruli kontur", edged)
+    edged = cv2.Canny(bfilter, 100, 300) #eddigi legjobb
+    #cv2.imshow("Canny detektorral előállított kép", edged)
     #cv2.waitKey(0)
 
 #---------------kontúrkeresés-----------------
     
     keypoints = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) 
     contours = imutils.grab_contours(keypoints)
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10]
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:10] #10 a legjobb
 
 #----------------rendszám megkeresése-----------------------
     location = None
@@ -85,16 +83,16 @@ def numberplate_to_text(img):
         (x1, y1) = (np.min(x), np.min(y))
         (x2, y2) = (np.max(x), np.max(y))
         cropped = gray[x1:x2+1, y1:y2+1]
-        
+
         location = location.reshape(4,2)
         pts = np.array(location, dtype="float32")
         warped = four_point_transform(gray, location)
         warped = cv2.bilateralFilter(warped, 11, 90, 90)             
-#         cv2.imshow("cropped_and_man",warped)
+#         cv2.imshow("Szembe forgatott rendszám",warped)
 #         cv2.waitKey(0)        
 
 #----------string kinyerése tesseract-------------
-        #binaris kep legyen
+
         text = pytesseract.image_to_string(warped, config='--psm 11', lang='eng')
         new_text = text.strip("")
         new_text = ''.join(ch.upper() for ch in new_text if ch.isalnum())
@@ -104,10 +102,12 @@ def numberplate_to_text(img):
 def test_script_different_cars():
     predicted_list = []
     known_plates = []
+    i=0
     statistic = []
     with open('teszt.txt') as file:
         lines = file.readlines()
         for line in lines:
+            i+=1
             inputpath = line.rstrip()
             img = cv2.imread(inputpath)
             number_plate_text = numberplate_to_text(img)
@@ -116,7 +116,7 @@ def test_script_different_cars():
             known_plates.append(actual_plate)
             match = round((similar(actual_plate, number_plate_text)*100), 2)
             statistic.append(match)
-            print("Exact plate number: ",actual_plate, "   Predicted plate number: ",number_plate_text,"   Match: ",match,"%",'\n')
+            print(i,". Exact plate number: ",actual_plate, "   Predicted plate number: ",number_plate_text,"   Match: ",match,"%",'\n')
             
     return statistic       
 
